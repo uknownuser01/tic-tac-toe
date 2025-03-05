@@ -56,10 +56,20 @@
         .mode-selection {
             margin: 20px;
         }
+        #stats {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div id="stats"></div>
         <h1>Tic-Tac-Toe</h1>
         <div class="mode-selection">
             <button onclick="setMode('bot')">Play with Bot</button>
@@ -68,171 +78,6 @@
         <div class="board" id="board"></div>
         <button onclick="restartGame()">Restart</button>
     </div>
-    
-    <script>
-        const board = document.getElementById("board");
-        const status = document.getElementById("status");
-        let currentPlayer = "X";
-        let gameState = Array(9).fill(null);
-        let gameMode = "bot";
-        let gameOver = false;
-        
-        function setMode() {
-            restartGame();
-        }
-        
-        function createBoard() {
-            board.innerHTML = "";
-            gameState.forEach((_, index) => {
-                const cell = document.createElement("div");
-                cell.classList.add("cell");
-                cell.dataset.index = index;
-                cell.addEventListener("click", handleMove);
-                board.appendChild(cell);
-            });
-        }
-        
-        function handleMove(event) {
-            if (gameOver) return;
-            const index = Number(event.target.dataset.index);
-            if (gameState[index] !== null) return;
-            
-            gameState[index] = currentPlayer;
-            event.target.textContent = currentPlayer;
-            event.target.classList.add("taken");
-            
-            const winner = checkWinner();
-            if (winner) {
-                status.textContent = `Player ${winner} wins!`;
-                gameOver = true;
-                return;
-            }
-            
-            if (!gameState.includes(null)) {
-                status.textContent = "It's a draw!";
-                gameOver = true;
-                return;
-            }
-            
-            currentPlayer = currentPlayer === "X" ? "O" : "X";
-            status.textContent = currentPlayer === "X" ? "Player X's turn" : "Bot's turn";
-            
-            if (currentPlayer === "O") {
-                setTimeout(botMove, 500);
-            }
-        }
-        
-        function botMove() {
-            if (gameOver) return;
-            let bestMove = getBestMove();
-            gameState[bestMove] = "O";
-            
-            let botCell = document.querySelector(`.cell[data-index='${bestMove}']`);
-            botCell.textContent = "O";
-            botCell.classList.add("taken");
-            
-            const winner = checkWinner();
-            if (winner) {
-                status.textContent = "Bot wins!";
-                gameOver = true;
-                return;
-            }
-            
-            if (!gameState.includes(null)) {
-                status.textContent = "It's a draw!";
-                gameOver = true;
-                return;
-            }
-            
-            currentPlayer = "X";
-            status.textContent = "Player X's turn";
-        }
-        
-        function getBestMove() {
-            const winPatterns = [
-                [0, 1, 2], [3, 4, 5], [6, 7, 8],
-                [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                [0, 4, 8], [2, 4, 6]
-            ];
-            
-            const corners = [0, 2, 6, 8];
-            let playerMoves = gameState.map((val, idx) => val === "X" ? idx : null).filter(v => v !== null);
-            
-            // First, check if bot can win in the next move
-            for (let pattern of winPatterns) {
-                let [a, b, c] = pattern;
-                let values = [gameState[a], gameState[b], gameState[c]];
-                if (values.filter(v => v === "O").length === 2 && values.includes(null)) {
-                    return pattern[values.indexOf(null)];
-                }
-            }
-            
-            // Then, check if player can win in the next move and block them
-            for (let pattern of winPatterns) {
-                let [a, b, c] = pattern;
-                let values = [gameState[a], gameState[b], gameState[c]];
-                if (values.filter(v => v === "X").length === 2 && values.includes(null)) {
-                    return pattern[values.indexOf(null)];
-                }
-            }
-            
-            // If player started in a corner, bot chooses center
-            if (playerMoves.length === 1 && corners.includes(playerMoves[0])) {
-                if (gameState[4] === null) {
-                    return 4;
-                }
-            }
-            
-            // If player then plays opposite corner, bot should avoid corners
-            if (playerMoves.length === 2 && corners.includes(playerMoves[0]) && corners.includes(playerMoves[1])) {
-                let availableSides = [1, 3, 5, 7].filter(pos => gameState[pos] === null);
-                if (availableSides.length > 0) {
-                    return availableSides[0];
-                }
-            }
-
-            // If center is available, take it
-            if (gameState[4] === null) {
-                return 4;
-            }
-
-            // Otherwise, take any available corner
-            for (let corner of corners) {
-                if (gameState[corner] === null) {
-                    return corner;
-                }
-            }
-
-            // Finally, take any available cell
-            let emptyCells = gameState.map((val, index) => val === null ? index : null).filter(val => val !== null);
-            return emptyCells[0];
-        }
-        
-        function checkWinner() {
-            const winPatterns = [
-                [0, 1, 2], [3, 4, 5], [6, 7, 8],
-                [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                [0, 4, 8], [2, 4, 6]
-            ];
-            
-            for (let pattern of winPatterns) {
-                const [a, b, c] = pattern;
-                if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
-                    return gameState[a];
-                }
-            }
-            return null;
-        }
-        
-        function restartGame() {
-            gameState = Array(9).fill(null);
-            currentPlayer = "X";
-            gameOver = false;
-            status.textContent = "Player X's turn";
-            createBoard();
-        }
-        
-        createBoard();
-    </script>
+    <script> /* JS content from script.js goes here */ </script>
 </body>
 </html>
