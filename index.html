@@ -53,9 +53,6 @@
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-        .mode-selection {
-            margin: 20px;
-        }
         #stats {
             background: rgba(255, 255, 255, 0.8);
             border-radius: 10px;
@@ -85,12 +82,7 @@
         let draws = localStorage.getItem('draws') ? parseInt(localStorage.getItem('draws')) : 0;
 
         let gameState = Array(9).fill(null);
-        let gameMode = "bot";
         let gameOver = false;
-
-        function setMode() {
-            restartGame();
-        }
 
         function createBoard() {
             board.innerHTML = "";
@@ -189,6 +181,9 @@
             const corners = [0, 2, 6, 8];
             let playerMoves = gameState.map((val, idx) => val === "X" ? idx : null).filter(v => v !== null);
 
+            // Check if player started with 5 or 7
+            const playerStartedWith5Or7 = playerMoves.includes(5) || playerMoves.includes(7);
+
             // First, check if bot can win in the next move
             for (let pattern of winPatterns) {
                 let [a, b, c] = pattern;
@@ -212,6 +207,12 @@
                 if (gameState[4] === null) {
                     return 4;
                 }
+            }
+
+            // If player started with 5 or 7, avoid center
+            if (playerStartedWith5Or7 && gameState[4] === null) {
+                let availableMoves = gameState.map((val, index) => val === null ? index : null).filter(val => val !== null);
+                return availableMoves[0]; // Return any available move except center
             }
 
             // If player then plays opposite corner, bot should avoid corners
