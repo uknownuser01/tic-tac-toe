@@ -75,7 +75,8 @@
         const status = document.getElementById("status");
         let currentPlayer = "X";
         let gameState = Array(9).fill(null);
-        let gameMode = "player";
+        let gameMode = "bot";
+        let gameOver = false;
         
         function setMode(mode) {
             gameMode = mode;
@@ -94,24 +95,29 @@
         }
         
         function handleMove(event) {
-            const index = event.target.dataset.index;
-            if (gameState[index] || checkWinner()) return;
+            if (gameOver) return;
+            const index = Number(event.target.dataset.index);
+            if (gameState[index] !== null) return;
+            
             gameState[index] = currentPlayer;
             event.target.textContent = currentPlayer;
             event.target.classList.add("taken");
             
-            if (checkWinner()) {
-                status.textContent = `Player ${currentPlayer} wins!`;
+            const winner = checkWinner();
+            if (winner) {
+                status.textContent = `Player ${winner} wins!`;
+                gameOver = true;
                 return;
             }
             
             if (!gameState.includes(null)) {
                 status.textContent = "It's a draw!";
+                gameOver = true;
                 return;
             }
             
             currentPlayer = currentPlayer === "X" ? "O" : "X";
-            status.textContent = `Player ${currentPlayer}'s turn`;
+            status.textContent = currentPlayer === "X" ? "Player X's turn" : "Bot's turn";
             
             if (gameMode === "bot" && currentPlayer === "O") {
                 setTimeout(botMove, 500);
@@ -119,6 +125,7 @@
         }
         
         function botMove() {
+            if (gameOver) return;
             let bestMove = getBestMove();
             gameState[bestMove] = "O";
             
@@ -126,13 +133,16 @@
             botCell.textContent = "O";
             botCell.classList.add("taken");
             
-            if (checkWinner()) {
+            const winner = checkWinner();
+            if (winner) {
                 status.textContent = "Bot wins!";
+                gameOver = true;
                 return;
             }
             
             if (!gameState.includes(null)) {
                 status.textContent = "It's a draw!";
+                gameOver = true;
                 return;
             }
             
@@ -141,6 +151,11 @@
         }
         
         function getBestMove() {
+            const corners = [0, 2, 6, 8];
+            if (corners.includes(gameState.indexOf("X")) && gameState[4] === null) {
+                return 4;
+            }
+            
             const winPatterns = [
                 [0, 1, 2], [3, 4, 5], [6, 7, 8],
                 [0, 3, 6], [1, 4, 7], [2, 5, 8],
@@ -159,7 +174,7 @@
             }
             
             let emptyCells = gameState.map((val, index) => val === null ? index : null).filter(val => val !== null);
-            return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            return emptyCells[0];
         }
         
         function checkWinner() {
@@ -168,15 +183,20 @@
                 [0, 3, 6], [1, 4, 7], [2, 5, 8],
                 [0, 4, 8], [2, 4, 6]
             ];
-            return winPatterns.some(pattern => {
+            
+            for (let pattern of winPatterns) {
                 const [a, b, c] = pattern;
-                return gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c];
-            });
+                if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+                    return gameState[a];
+                }
+            }
+            return null;
         }
         
         function restartGame() {
             gameState = Array(9).fill(null);
             currentPlayer = "X";
+            gameOver = false;
             status.textContent = "Player X's turn";
             createBoard();
         }
